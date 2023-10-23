@@ -285,18 +285,20 @@ catalogueExport <- function (connectionDetails,
   
   # Clean up existing scratch tables -----------------------------------------------
   
-  if ((numThreads > 1 || !.supportsTempTables(connectionDetails)) && !sqlOnly) {
-    # Drop the scratch tables
-    ParallelLogger::logInfo(sprintf("Dropping scratch CatalogueExport tables from schema %s", scratchDatabaseSchema))
-    
-    dropAllScratchTables(connectionDetails = connectionDetails,
-                         scratchDatabaseSchema = scratchDatabaseSchema,
-                         tempPrefix = tempPrefix,
-                         numThreads = numThreads,
-                         tableTypes = c("catalogueExport"),
-                         outputFolder = outputFolder)
-    
-    ParallelLogger::logInfo(sprintf("Temporary CatalogueExport tables removed from schema %s", scratchDatabaseSchema))
+  if (!skipCreate) {
+    if ((numThreads > 1 || !.supportsTempTables(connectionDetails)) && !sqlOnly) {
+      # Drop the scratch tables
+      ParallelLogger::logInfo(sprintf("Dropping scratch CatalogueExport tables from schema %s", scratchDatabaseSchema))
+      
+      dropAllScratchTables(connectionDetails = connectionDetails,
+                           scratchDatabaseSchema = scratchDatabaseSchema,
+                           tempPrefix = tempPrefix,
+                           numThreads = numThreads,
+                           tableTypes = c("catalogueExport"),
+                           outputFolder = outputFolder)
+      
+      ParallelLogger::logInfo(sprintf("Temporary CatalogueExport tables removed from schema %s", scratchDatabaseSchema))
+    }
   }
   
  
@@ -448,22 +450,24 @@ catalogueExport <- function (connectionDetails,
   }
   
   # Clean up scratch tables -----------------------------------------------
-  
-  if (numThreads == 1 & .supportsTempTables(connectionDetails)) {
-    # Dropping the connection removes the temporary scratch tables if running in serial
-    DatabaseConnector::disconnect(connection = connection)
-  } else if (dropScratchTables & !sqlOnly) {
-    # Drop the scratch tables
-    ParallelLogger::logInfo(sprintf("Dropping scratch Catalogie tables from schema %s", scratchDatabaseSchema))
-    
-    dropAllScratchTables(connectionDetails = connectionDetails, 
-                         scratchDatabaseSchema = scratchDatabaseSchema, 
-                         tempPrefix = tempPrefix, 
-                         numThreads = numThreads,
-                         tableTypes = c("catalogueExport"),
-                         outputFolder = outputFolder)
-    
-    ParallelLogger::logInfo(sprintf("Temporary Catalogue tables removed from schema %s", scratchDatabaseSchema))
+
+  if (!skipCreate) {
+    if (numThreads == 1 & .supportsTempTables(connectionDetails)) {
+      # Dropping the connection removes the temporary scratch tables if running in serial
+      DatabaseConnector::disconnect(connection = connection)
+    } else if (dropScratchTables & !sqlOnly) {
+      # Drop the scratch tables
+      ParallelLogger::logInfo(sprintf("Dropping scratch Catalogie tables from schema %s", scratchDatabaseSchema))
+      
+      dropAllScratchTables(connectionDetails = connectionDetails, 
+                           scratchDatabaseSchema = scratchDatabaseSchema, 
+                           tempPrefix = tempPrefix, 
+                           numThreads = numThreads,
+                           tableTypes = c("catalogueExport"),
+                           outputFolder = outputFolder)
+      
+      ParallelLogger::logInfo(sprintf("Temporary Catalogue tables removed from schema %s", scratchDatabaseSchema))
+    }
   }
   
   # Create indices -----------------------------------------------------------------
