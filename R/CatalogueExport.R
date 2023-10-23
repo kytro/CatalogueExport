@@ -82,7 +82,8 @@ catalogueExport <- function (connectionDetails,
                       dropScratchTables = TRUE,
                       sqlOnly = FALSE,
                       outputFolder = "output",
-                      verboseMode = TRUE) {
+                      verboseMode = TRUE,
+                      skipCreate = FALSE) {
   
   achillesSql <- c()
   catalogueSql <- c()
@@ -229,7 +230,7 @@ catalogueExport <- function (connectionDetails,
   
   ## Remove existing results if createTable is FALSE ----------------------------------------------------------------
   
-  if (!createTable) {
+  if (!createTable && !skipCreate) {
     .deleteExistingResults(connectionDetails = connectionDetails,
                            resultsDatabaseSchema = resultsDatabaseSchema,
                            analysisDetails = analysisDetails)  
@@ -237,7 +238,7 @@ catalogueExport <- function (connectionDetails,
   
   # Create analysis table ------------------------------------------------------------- 
   
-  if (createTable) {
+  if (createTable && !skipCreate) {
     analysesSqls <- apply(analysisDetails, 1, function(analysisDetail) {  
       SqlRender::render("select @analysisId as analysis_id, '@analysisName' as analysis_name,
                            '@stratum1Name' as stratum_1_name, '@stratum2Name' as stratum_2_name,
@@ -261,7 +262,7 @@ catalogueExport <- function (connectionDetails,
     
     achillesSql <- c(achillesSql, sql)
     
-    if (!sqlOnly) {
+    if (!sqlOnly && !skipCreate) {
       if (numThreads == 1) { 
         # connection is already alive
         DatabaseConnector::executeSql(connection = connection, sql = sql)
@@ -327,7 +328,7 @@ catalogueExport <- function (connectionDetails,
   achillesSql <- c(achillesSql, lapply(mainSqls, function(s) s$sql))
   
   
-  if (!sqlOnly) {
+  if (!sqlOnly && !skipCreate) {
     ParallelLogger::logInfo("Executing multiple queries. This could take a while")
     
     if (numThreads == 1) {
@@ -406,7 +407,7 @@ catalogueExport <- function (connectionDetails,
   
   achillesSql <- c(achillesSql, mergeSqls)
   
-  if (!sqlOnly) {
+  if (!sqlOnly&& !skipCreate) {
     
     ParallelLogger::logInfo("Merging scratch CatalogueExport tables")
     
@@ -442,7 +443,7 @@ catalogueExport <- function (connectionDetails,
     }
   }
   
-  if (!sqlOnly) {
+  if (!sqlOnly&& !skipCreate) {
     ParallelLogger::logInfo(sprintf("Done. Catalogue results can now be found in schema %s", resultsDatabaseSchema))
   }
   
