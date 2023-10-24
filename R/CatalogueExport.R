@@ -284,7 +284,7 @@ catalogueExport <- function (connectionDetails,
   }
   
   # Clean up existing scratch tables -----------------------------------------------
-  
+  console.print(skipCreate)
   if (!skipCreate) {
     if ((numThreads > 1 || !.supportsTempTables(connectionDetails)) && !sqlOnly) {
       # Drop the scratch tables
